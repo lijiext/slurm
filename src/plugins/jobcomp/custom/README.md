@@ -11,9 +11,14 @@
 
 ## 编译与安装
 
-1. **生成构建配置** (如果在 Slurm 源码树中首次添加):
+1. **生成构建配置** (如果在 Slurm 源码树中首次添加或修改了目录结构):
+   如果源码根目录下有 `autogen.sh`：
    ```bash
    ./autogen.sh
+   ```
+   如果缺失 `autogen.sh`（常见于官方发布包），请使用：
+   ```bash
+   autoreconf -vfi
    ```
 
 2. **编译插件**:
@@ -22,8 +27,29 @@
    make src/plugins/jobcomp/custom/jobcomp_custom.la
    ```
 
+3. **RPM 打包 (可选)**:
+   如果您使用 RPM 进行部署，请在执行完上述步骤后重新打包 Tarball，并运行：
+   ```bash
+   rpmbuild -ta slurm-custom.tar.bz2
+   ```
+   插件 `.so` 文件将自动包含在生成的 **`slurm-*.x86_64.rpm`** 主包中。
+
+### DEB 打包 (Ubuntu/Debian) (可选)
+如果您在 Ubuntu/Debian 环境下进行打包部署：
+1. **准备工作**：同样需要先运行 `autoreconf -vfi` 以确保 `Makefile.in` 已生成。
+2. **打包命令**：
+   ```bash
+   dpkg-buildpackage -b -uc -us
+   ```
 3. **安装**:
-   将编译生成的 `.so` 文件复制到 Slurm 的插件目录（通常是 `/usr/lib64/slurm/` 或通过 `make install` 安装）。
+   插件通常会被包含在生成的 **`slurm-client`** 或 **`libslurm`** 相关的 `.deb` 包中。安装后可通过以下命令确认：
+   ```bash
+   dpkg -L <package_name> | grep jobcomp_custom.so
+   ```
+
+4. **安装**:
+   - **手动安装**: 将生成的 `.so` 文件复制到 `/usr/lib64/slurm/`。
+   - **RPM 安装**: 正常安装/更新生成的 `slurm` RPM 包即可。
 
 ## 配置方法
 
